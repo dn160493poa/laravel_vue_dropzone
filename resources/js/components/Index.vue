@@ -1,27 +1,44 @@
 <template>
     <div class="w-25">
-        <div ref="dropzone" class="p-5 bg-dark text-center text-light cursor-pointer">
+        <input v-model="title" type="text" class="form-control mb-3" placeholder="title">
+        <div ref="dropzone" class="p-5 bg-dark text-center text-light cursor-pointer mb-3">
             Upload
         </div>
+        <input @click.prevent="store" type="submit" class="btn btn-primary" value="Add">
     </div>
 </template>
 
 <script>
 import Dropzone from 'dropzone'
+
 export default {
     name: "Index",
 
-    data(){
+    data() {
         return {
-            dropzone: null
+            dropzone: null,
+            title: null
         }
     },
 
     mounted() {
         this.dropzone = new Dropzone(this.$refs.dropzone, {
-            url: 'dsa'
+            url: '/api/posts',
+            autoProcessQueue: false
         })
     },
+
+    methods: {
+        store() {
+            const images = new FormData()
+            const files = this.dropzone.getAcceptedFiles();
+            files.forEach(file => {
+                images.append('images[]', file)
+            })
+            axios.post('/api/posts', images)
+
+        }
+    }
 
 }
 </script>
