@@ -5406,40 +5406,28 @@ __webpack_require__.r(__webpack_exports__);
       dropzone: null,
       title: null,
       post: null,
-      content: null
+      content: null,
+      imagesIdsForDelete: []
     };
   },
   components: {
     VueEditor: vue2_editor__WEBPACK_IMPORTED_MODULE_1__.VueEditor
   },
   mounted: function mounted() {
+    var _this = this;
+
     this.dropzone = new dropzone__WEBPACK_IMPORTED_MODULE_0__["default"](this.$refs.dropzone, {
       url: '/api/posts',
       autoProcessQueue: false,
       addRemoveLinks: true
     });
     this.getPost();
+    this.dropzone.on('removedfile', function (file) {
+      _this.imagesIdsForDelete.push(file.id);
+    });
   },
   methods: {
     store: function store() {
-      var _this = this;
-
-      var data = new FormData();
-      var files = this.dropzone.getAcceptedFiles();
-      files.forEach(function (file) {
-        data.append('images[]', file);
-
-        _this.dropzone.removeFile(file);
-      });
-      data.append('title', this.title);
-      data.append('content', this.content);
-      this.title = '';
-      this.content = '';
-      axios.post('/api/posts', data).then(function (res) {
-        _this.getPost();
-      });
-    },
-    update: function update() {
       var _this2 = this;
 
       var data = new FormData();
@@ -5451,28 +5439,50 @@ __webpack_require__.r(__webpack_exports__);
       });
       data.append('title', this.title);
       data.append('content', this.content);
+      this.title = '';
+      this.content = '';
+      axios.post('/api/posts', data).then(function (res) {
+        _this2.getPost();
+      });
+    },
+    update: function update() {
+      var _this3 = this;
+
+      var data = new FormData();
+      var files = this.dropzone.getAcceptedFiles();
+      files.forEach(function (file) {
+        data.append('images[]', file);
+
+        _this3.dropzone.removeFile(file);
+      });
+      this.imagesIdsForDelete.forEach(function (idForDelete) {
+        data.append('image_ids_for_delete[]', idForDelete);
+      });
+      data.append('title', this.title);
+      data.append('content', this.content);
       data.append('_method', 'PATCH');
       this.title = '';
       this.content = '';
       axios.post("/api/posts/".concat(this.post.id), data).then(function (res) {
-        _this2.getPost();
+        _this3.getPost();
       });
     },
     getPost: function getPost() {
-      var _this3 = this;
+      var _this4 = this;
 
       axios.get('/api/posts').then(function (res) {
-        _this3.post = res.data.data;
-        _this3.title = _this3.post.title;
-        _this3.content = _this3.post.content;
+        _this4.post = res.data.data;
+        _this4.title = _this4.post.title;
+        _this4.content = _this4.post.content;
 
-        _this3.post.images.forEach(function (image) {
+        _this4.post.images.forEach(function (image) {
           var file = {
+            id: image.id,
             name: image.name,
             size: image.size
           };
 
-          _this3.dropzone.displayExistingFile(file, image.preview_url);
+          _this4.dropzone.displayExistingFile(file, image.preview_url);
         });
       });
     },

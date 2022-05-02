@@ -36,7 +36,8 @@ export default {
             dropzone: null,
             title: null,
             post: null,
-            content: null
+            content: null,
+            imagesIdsForDelete: []
         }
     },
 
@@ -52,6 +53,10 @@ export default {
         })
 
         this.getPost()
+
+        this.dropzone.on('removedfile', (file) => {
+            this.imagesIdsForDelete.push(file.id)
+        })
     },
 
     methods: {
@@ -79,6 +84,11 @@ export default {
                 data.append('images[]', file)
                 this.dropzone.removeFile(file)
             })
+
+            this.imagesIdsForDelete.forEach( idForDelete => {
+                data.append('image_ids_for_delete[]', idForDelete)
+            })
+
             data.append('title', this.title)
             data.append('content', this.content)
             data.append('_method', 'PATCH')
@@ -99,7 +109,7 @@ export default {
                 this.content = this.post.content
 
                 this.post.images.forEach( image => {
-                    let file = { name: image.name, size: image.size };
+                    let file = { id: image.id, name: image.name, size: image.size };
                     this.dropzone.displayExistingFile(file, image.preview_url);
                 })
             })

@@ -16,26 +16,42 @@ class UpdateController extends Controller
     public function __invoke(UpdateRequest $request, Post $post)
     {
         $data = $request->validated();
-        $images = $data['images'];
-        unset($data['images']);
+        $images = isset($data['images']) ? $data['images'] : null;
+        $image_ids_for_delete = isset($data['image_ids_for_delete']) ? $data['image_ids_for_delete'] : null;
+        unset($data['images'], $data['image_ids_for_delete']);
+        //$post = Post::firstOrCreate($data);
 
-        $post = Post::firstOrCreate($data);
-        foreach ($images as $image){
-            $name = md5(Carbon::now() . '_' . $image->getClientOriginalName()) . '.' . $image->getClientOriginalExtension();
-            $file_path = Storage::disk('public')->putFileAs('/images', $image, $name);
-            $preview_name = 'prev_' . $name;
-
-            Image::create([
-                'path' => $file_path,
-                'name' => $image->getClientOriginalName(),
-                'url' => url('/storage/' . $file_path),
-                'preview_url' => url('/storage/images/' . $preview_name),
-                'post_id' => $post->id
-            ]);
-
-            \Intervention\Image\Facades\Image::make($image)->fit(100, 100)
-                ->save(storage_path('app/public/images/' . $preview_name));
+        $current_images = $post->images;
+        if($image_ids_for_delete){
+            foreach ($current_images as $current_image){
+                if(in_array($current_image->id, $image_ids_for_delete)){
+                    Storage::disk('public')->delete($current_image->path);
+                    Storage::disk('public')->delete(str_replace('images/', 'images/prev_', $current_image->path));
+                    $current_image->delete();
+                }
+            }
         }
+
+
+        if($images){
+            foreach ($images as $image){
+                $name = md5(Carbon::now() . '_' . $image->getClientOriginalName()) . '.' . $image->getClientOriginalExtension();
+                $file_path = Storage::disk('public')->putFileAs('/images', $image, $name);
+                $preview_name = 'prev_' . $name;
+
+                Image::create([
+                    'path' => $file_path,
+                    'name' => $image->getClientOriginalName(),
+                    'url' => url('/storage/' . $file_path),
+                    'preview_url' => url('/storage/images/' . $preview_name),
+                    'post_id' => $post->id
+                ]);
+
+                \Intervention\Image\Facades\Image::make($image)->fit(100, 100)
+                    ->save(storage_path('app/public/images/' . $preview_name));
+            }
+        }
+
 
 
         return response()->json(['message' => 'success']);
