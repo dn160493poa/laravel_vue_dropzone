@@ -5,7 +5,7 @@
             Upload
         </div>
         <div class="mb-3">
-            <vue-editor useCustomImageHandler @image-added="handleImageAdded" v-model="content"  />
+            <vue-editor useCustomImageHandler @image-removed="handleImageRemove" @image-added="handleImageAdded" v-model="content"  />
         </div>
 <!--        How the method do you want use? Switch comments to true and close false (store or update)-->
 <!--        <input @click.prevent="store" type="submit" class="btn btn-primary" value="Done">-->
@@ -37,7 +37,8 @@ export default {
             title: null,
             post: null,
             content: null,
-            imagesIdsForDelete: []
+            imagesIdsForDelete: [],
+            imagesUrlsForDelete: []
         }
     },
 
@@ -89,6 +90,10 @@ export default {
                 data.append('image_ids_for_delete[]', idForDelete)
             })
 
+            this.imagesUrlsForDelete.forEach( urlForDelete => {
+                data.append('image_urls_for_delete[]', urlForDelete)
+            })
+
             data.append('title', this.title)
             data.append('content', this.content)
             data.append('_method', 'PATCH')
@@ -96,6 +101,12 @@ export default {
             this.content = ''
             axios.post(`/api/posts/${this.post.id}`, data)
                 .then(res => {
+                    let previews = this.dropzone.previewsContainer.querySelectorAll('.dz-image-preview')
+
+                    previews.forEach( preview => {
+                        preview.remove()
+                    })
+
                     this.getPost()
                 })
         },
@@ -128,6 +139,11 @@ export default {
                 .catch(err => {
                     console.log(err);
                 });
+        },
+
+
+        handleImageRemove(url){
+            this.imagesUrlsForDelete.push(url)
         }
     }
 

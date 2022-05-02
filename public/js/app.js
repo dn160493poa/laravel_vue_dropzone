@@ -5407,7 +5407,8 @@ __webpack_require__.r(__webpack_exports__);
       title: null,
       post: null,
       content: null,
-      imagesIdsForDelete: []
+      imagesIdsForDelete: [],
+      imagesUrlsForDelete: []
     };
   },
   components: {
@@ -5458,12 +5459,21 @@ __webpack_require__.r(__webpack_exports__);
       this.imagesIdsForDelete.forEach(function (idForDelete) {
         data.append('image_ids_for_delete[]', idForDelete);
       });
+      this.imagesUrlsForDelete.forEach(function (urlForDelete) {
+        data.append('image_urls_for_delete[]', urlForDelete);
+      });
       data.append('title', this.title);
       data.append('content', this.content);
       data.append('_method', 'PATCH');
       this.title = '';
       this.content = '';
       axios.post("/api/posts/".concat(this.post.id), data).then(function (res) {
+        var previews = _this3.dropzone.previewsContainer.querySelectorAll('.dz-image-preview');
+
+        previews.forEach(function (preview) {
+          preview.remove();
+        });
+
         _this3.getPost();
       });
     },
@@ -5497,6 +5507,9 @@ __webpack_require__.r(__webpack_exports__);
       })["catch"](function (err) {
         console.log(err);
       });
+    },
+    handleImageRemove: function handleImageRemove(url) {
+      this.imagesUrlsForDelete.push(url);
     }
   }
 });
@@ -42286,7 +42299,10 @@ var render = function () {
       [
         _c("vue-editor", {
           attrs: { useCustomImageHandler: "" },
-          on: { "image-added": _vm.handleImageAdded },
+          on: {
+            "image-removed": _vm.handleImageRemove,
+            "image-added": _vm.handleImageAdded,
+          },
           model: {
             value: _vm.content,
             callback: function ($$v) {
