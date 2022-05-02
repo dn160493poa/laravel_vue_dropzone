@@ -15,6 +15,9 @@
                     <img :src="image.preview_url" class="mb-3">
                     <img :src="image.url" >
                 </div>
+                <div v-html="post.content" class="ql-editor">
+
+                </div>
             </div>
         </div>
     </div>
@@ -58,7 +61,9 @@ export default {
                 this.dropzone.removeFile(file)
             })
             data.append('title', this.title)
+            data.append('content', this.content)
             this.title = ''
+            this.content = ''
             axios.post('/api/posts', data)
             .then(res => {
                 this.getPost()
@@ -92,6 +97,8 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style>
+.dz-success-mark, .dz-error-mark{
+    display: none;
+}
 </style>
