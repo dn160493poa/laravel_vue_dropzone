@@ -5395,6 +5395,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
@@ -5437,12 +5439,41 @@ __webpack_require__.r(__webpack_exports__);
         _this.getPost();
       });
     },
-    getPost: function getPost() {
+    update: function update() {
       var _this2 = this;
 
+      var data = new FormData();
+      var files = this.dropzone.getAcceptedFiles();
+      files.forEach(function (file) {
+        data.append('images[]', file);
+
+        _this2.dropzone.removeFile(file);
+      });
+      data.append('title', this.title);
+      data.append('content', this.content);
+      data.append('_method', 'PATCH');
+      this.title = '';
+      this.content = '';
+      axios.post("/api/posts/".concat(this.post.id), data).then(function (res) {
+        _this2.getPost();
+      });
+    },
+    getPost: function getPost() {
+      var _this3 = this;
+
       axios.get('/api/posts').then(function (res) {
-        _this2.post = res.data.data;
-        console.log(res);
+        _this3.post = res.data.data;
+        _this3.title = _this3.post.title;
+        _this3.content = _this3.post.content;
+
+        _this3.post.images.forEach(function (image) {
+          var file = {
+            name: image.name,
+            size: image.size
+          };
+
+          _this3.dropzone.displayExistingFile(file, image.preview_url);
+        });
       });
     },
     handleImageAdded: function handleImageAdded(file, Editor, cursorLocation, resetUploader) {
@@ -42236,7 +42267,7 @@ var render = function () {
         ref: "dropzone",
         staticClass: "p-5 bg-dark text-center text-light cursor-pointer mb-3",
       },
-      [_vm._v("\n        Upload\n    ")]
+      [_vm._v("\n            Upload\n        ")]
     ),
     _vm._v(" "),
     _c(
@@ -42260,11 +42291,11 @@ var render = function () {
     _vm._v(" "),
     _c("input", {
       staticClass: "btn btn-primary",
-      attrs: { type: "submit", value: "Add" },
+      attrs: { type: "submit", value: "Update" },
       on: {
         click: function ($event) {
           $event.preventDefault()
-          return _vm.store.apply(null, arguments)
+          return _vm.update.apply(null, arguments)
         },
       },
     }),

@@ -7,7 +7,9 @@
         <div class="mb-3">
             <vue-editor useCustomImageHandler @image-added="handleImageAdded" v-model="content"  />
         </div>
-        <input @click.prevent="store" type="submit" class="btn btn-primary" value="Add">
+<!--        How the method do you want use? Switch comments to true and close false (store or update)-->
+<!--        <input @click.prevent="store" type="submit" class="btn btn-primary" value="Done">-->
+        <input @click.prevent="update" type="submit" class="btn btn-primary" value="Update">
         <div class="mt-5">
             <div v-if="post">
                 <h4>{{ post.title}}</h4>
@@ -70,11 +72,36 @@ export default {
             })
         },
 
+        update(){
+            const data = new FormData()
+            const files = this.dropzone.getAcceptedFiles();
+            files.forEach(file => {
+                data.append('images[]', file)
+                this.dropzone.removeFile(file)
+            })
+            data.append('title', this.title)
+            data.append('content', this.content)
+            data.append('_method', 'PATCH')
+            this.title = ''
+            this.content = ''
+            axios.post(`/api/posts/${this.post.id}`, data)
+                .then(res => {
+                    this.getPost()
+                })
+        },
+
         getPost(){
             axios.get('/api/posts')
             .then(res => {
                 this.post = res.data.data
-                console.log(res);
+
+                this.title = this.post.title
+                this.content = this.post.content
+
+                this.post.images.forEach( image => {
+                    let file = { name: image.name, size: image.size };
+                    this.dropzone.displayExistingFile(file, image.preview_url);
+                })
             })
         },
 

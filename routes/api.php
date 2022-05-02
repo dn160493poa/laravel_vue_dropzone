@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Post\IndexController;
 use App\Http\Controllers\Post\StoreController;
+use App\Http\Controllers\Post\UpdateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,7 @@ Route::group(['prefix' => 'posts', 'namespace' => 'Post'], function () {
         Route::post('/', [App\Http\Controllers\Post\Image\StoreController::class, '__invoke']);
     });
 
-    Route::post('/', [StoreController::class, '__invoke']);
+    //Route::post('/', [StoreController::class, '__invoke']);
+    Route::patch('/{post}', [UpdateController::class, '__invoke']);
     Route::get('/', [IndexController::class, '__invoke']);
 });
